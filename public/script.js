@@ -26,14 +26,12 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 
         // Handle user connection
         socket.on('user-connected', userId => {
-            console.log('User connected:', userId);
             startCallWithNewUser(userId, stream);
         });
 
         // Handle user disconnection
         socket.on('user-disconnected', userId => {
             if (peers[userId]) peers[userId].close();
-            console.log('User disconnected:', userId);
         });
     }).catch(error => {
         console.error('Error accessing media devices.', error);
@@ -63,15 +61,7 @@ function startCallWithNewUser(userId, stream) {
     const video = document.createElement('video');
 
     call.on('stream', userVideoStream => {
-        if (userVideoStream) {
-            addVideo(video, userVideoStream);
-        } else {
-            console.log(`User ${userId} has no video stream.`);
-            // Optional: Display a placeholder or message
-            const placeholder = document.createElement('div');
-            placeholder.textContent = "User without camera";
-            videogrid.append(placeholder);
-        }
+        addVideo(video, userVideoStream);
     });
 
     call.on('close', () => {
