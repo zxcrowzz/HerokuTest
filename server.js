@@ -23,7 +23,11 @@ const socketIo = require("socket.io"); // Import socket.io here
 // Create server and initialize Socket.IO
 const server = http.createServer(app);
 const io = socketIo(server);
+const peerServer = ExpressPeerServer(server, {
+    path: '/peerjs'
+});
 
+app.use('/peerjs', peerServer);
 app.use(express.static(path.join(__dirname, 'public')));
 const PendingUser = require('./models/PendingUser');
 const cookieParser = require('cookie-parser');
