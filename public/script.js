@@ -63,7 +63,15 @@ function startCallWithNewUser(userId, stream) {
     const video = document.createElement('video');
 
     call.on('stream', userVideoStream => {
-        addVideo(video, userVideoStream);
+        if (userVideoStream) {
+            addVideo(video, userVideoStream);
+        } else {
+            console.log(`User ${userId} has no video stream.`);
+            // Optional: Display a placeholder or message
+            const placeholder = document.createElement('div');
+            placeholder.textContent = "User without camera";
+            videogrid.append(placeholder);
+        }
     });
 
     call.on('close', () => {
