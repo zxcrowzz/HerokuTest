@@ -8,35 +8,41 @@ const newPeer = new Peer(undefined, {
 const myVideo = document.createElement('video');
 myVideo.muted = true;
 
-navigator.mediaDevices.getUserMedia({
-    video: true,
-    audio: true
-}).then(stream => {
-    addVideo(myVideo, stream);
-    
-    // Handle incoming calls
-    newPeer.on('call', call => {
-        call.answer(stream);
-        const video = document.createElement('video');
-        call.on('stream', userVideoStream => {
-            addVideo(video, userVideoStream);
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+    }).then(stream => {
+        addVideo(myVideo, stream);
+        
+        // Handle incoming calls
+        newPeer.on('call', call => {
+            call.answer(stream);
+            const video = document.createElement('video');
+            call.on('stream', userVideoStream => {
+                addVideo(video, userVideoStream);
+            });
         });
-    });
 
-    // Handle user connection
-    socket.on('user-connected', userId => {
-        console.log('User connected:', userId);
-        startCallWithNewUser(userId, stream);
-    });
+        // Handle user connection
+        socket.on('user-connected', userId => {
+            console.log('User connected:', userId);
+            startCallWithNewUser(userId, stream);
+        });
 
-    // Handle user disconnection
-    socket.on('user-disconnected', userId => {
-        if (peers[userId]) peers[userId].close();
-        console.log('User disconnected:', userId);
+        // Handle user disconnection
+        socket.on('user-disconnected', userId => {
+            if (peers[userId]) peers[userId].close();
+            console.log('User disconnected:', userId);
+        });
+    }).catch(error => {
+        console.error('Error accessing media devices.', error);
+        alert("Unable to access the camera. Please check your device settings.");
     });
-}).catch(error => {
-    console.error('Error accessing media devices.', error);
-});
+} else {
+    console.error("Media devices not supported.");
+    alert("Your device does not support camera access.");
+}
 
 newPeer.on('open', id => {
     socket.emit('join-room', ROOM_ID, id);
@@ -45,7 +51,9 @@ newPeer.on('open', id => {
 function addVideo(video, stream) {
     video.srcObject = stream;
     video.addEventListener('loadedmetadata', () => {
-        video.play();
+        video.play().catch(error => {
+            console.error("Error playing video:", error);
+        });
     });
     videogrid.append(video);
 }
